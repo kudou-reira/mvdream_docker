@@ -65,25 +65,27 @@ WORKDIR /home/${USER_NAME}/threestudio
 # WORKDIR /home/${USER_NAME}/threestudio/extern/MVDream
 # RUN git clone https://github.com/bytedance/MVDream MVDream
 
-# Create a working directory where the user has write permissions
-WORKDIR /home/${USER_NAME}/threestudio
-# Set environment variables for Transformers cache to a writable directory
-ENV TRANSFORMERS_CACHE /home/${USER_NAME}/.cache/huggingface/hub
-# Change ownership of the working directory to the user
-RUN chown -R ${USER_NAME}:${GROUP_NAME} /home/${USER_NAME}/threestudio
-
-
-WORKDIR /home/${USER_NAME}/threestudio
-
 # Switch to root for permissions modification
-# USER root
+USER root
 COPY ./extern/MVDream /home/${USER_NAME}/threestudio/extern/MVDream
 # Change the ownership to dreamer for the copied directory
 RUN chown -R ${USER_NAME}:${GROUP_NAME} /home/${USER_NAME}/threestudio/extern/MVDream
 # Switch back to the dreamer user
-# USER ${USER_NAME}
+USER ${USER_NAME}
 
 RUN pip install -e /home/${USER_NAME}/threestudio/extern/MVDream
 
-
 WORKDIR /home/${USER_NAME}/threestudio
+
+USER root
+# Create necessary directories
+RUN mkdir -p /home/${USER_NAME}/threestudio && \
+    mkdir -p /home/${USER_NAME}/.cache/huggingface/hub && \
+    mkdir -p /home/${USER_NAME}/threestudio/outputs
+# Set proper ownership
+RUN chown -R ${USER_NAME}:${GROUP_NAME} /home/${USER_NAME}/threestudio && \
+    chown -R ${USER_NAME}:${GROUP_NAME} /home/${USER_NAME}/.cache/huggingface/hub && \
+    chown -R ${USER_NAME}:${GROUP_NAME} /home/${USER_NAME}/threestudio/outputs
+
+# Switch back to the dreamer user
+USER ${USER_NAME}
